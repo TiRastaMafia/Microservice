@@ -4,6 +4,7 @@ package com.server.controller.restControllers;
 import com.server.model.Client;
 import com.server.model.Gender;
 import com.server.service.ClientService;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,13 @@ import java.util.List;
 )
 public class RestClientController {
 
+    private final MeterRegistry meterRegistry;
+
     private final ClientService clientService;
 
     @Autowired
-    public RestClientController(ClientService clientService) {
+    public RestClientController(MeterRegistry meterRegistry, ClientService clientService) {
+        this.meterRegistry = meterRegistry;
 
         this.clientService = clientService;
     }
@@ -37,6 +41,7 @@ public class RestClientController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<Client>> read() {
+        meterRegistry.counter("requests_to_clients_all").increment();
         final List<Client> clients = clientService.readAll();
 
         return clients != null &&  !clients.isEmpty()
